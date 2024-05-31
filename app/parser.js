@@ -1,3 +1,5 @@
+const CRLF = "\r\n"
+
 export default class Parser {
     constructor() {
       this.commands = {
