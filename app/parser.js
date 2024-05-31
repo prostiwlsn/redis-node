@@ -12,7 +12,12 @@ export default class Parser {
     }
   
     parse(input) {
-      const parts = input.trim().split(/\r\n/);
+      let parts = input.trim().split("\r\n");
+
+      const attributePatern = /^[$*:].*/
+
+      parts = parts.filter(part => !attributePatern.test(part))
+
       const command = parts[0].toUpperCase();
       const args = parts.slice(1);
   
