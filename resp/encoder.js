@@ -1,6 +1,6 @@
 const CRLF = '\r\n'
 
-export default class Encoder{
+class Encoder{
     static encodeCommand(command){
         const parts = command.split(" ")
 

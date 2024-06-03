@@ -1,3 +1,5 @@
+const encoder = require('../resp/encoder');
+
 const net = require('net');
 
 const serverHost = '127.0.0.1'; // IP адрес или хост сервера
@@ -14,7 +16,7 @@ client.on('data', data => {
 });
 
 process.stdin.on('data', data => {
-    //client.write(data);
+    client.write(Encoder.encodeCommand(data.toString()));
 });
 
 client.on('close', () => {
