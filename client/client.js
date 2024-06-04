@@ -2,7 +2,7 @@ const encoder = require('../resp/encoder');
 
 const net = require('net');
 
-const serverHost = '127.0.0.1'; // IP адрес или хост сервера
+const serverHost = '127.0.0.1';
 const serverPort = 6379;
 
 const client = new net.Socket();
