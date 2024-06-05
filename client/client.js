@@ -12,7 +12,7 @@ client.connect(serverPort, serverHost, () => {
 });
 
 client.on('data', data => {
-    console.log('Received: ' + data);
+    console.log(data);
 });
 
 process.stdin.on('data', data => {
