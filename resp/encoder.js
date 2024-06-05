@@ -52,4 +52,8 @@ class Encoder{
     
         return Buffer.concat(bufs, length).toString()
     }
+
+    static encodeError (name, message) {
+        '-' + name + ' ' + message + CRLF
+    }
 }
