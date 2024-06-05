@@ -15,7 +15,7 @@ class Handler {
     handleCommand(command, storage){
         parsedCommand = decoder.parse(command)
 
-        return commands[parsedCommand.command]()
+        return commands[parsedCommand.command](parsedCommand.args, storage)
     }
 
     handlePing(args, storage){
