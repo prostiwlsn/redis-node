@@ -22,34 +22,102 @@ class Encoder{
     }
 
     static encodeString (str) {
-        '+' + str + CRLF
+        return '+' + str + CRLF
     }
 
     static encodeInteger (num) {
-        ':' + num + CRLF
+        return ':' + num + CRLF
+    }
+
+    static encodeInteger (num) {
+        return '(' + num + CRLF
+    }
+
+    static encodeDouble (num) {
+        if (num == Infinity){
+            return ',' + 'inf' + CRLF
+        }
+        else if (num == Number.NEGATIVE_INFINITY){
+            return ',' + '-inf' + CRLF
+        }
+        else if (isNaN(num)){
+            return ',' + 'nan' + CRLF
+        }
+
+        return ',' + num + CRLF
+    }
+
+    static encodeBool (value) {
+        return '#' + value + CRLF
     }
 
     static encodeNull () {
-        '$-1\r\n'
+        return '$_\r\n'
     }
 
     static encodeNullArray(){
-        '*-1\r\n'
+        return '*-1\r\n'
     }
 
     static encodeArray (arr) {
-        if (!Array.isArray(arr)) throw new Error(String(arr) + ' must be Array object')
-        const prefix = '*' + arr.length + CRLF
-        let length = prefix.length
-        const bufs = [Buffer.from(prefix)]
-    
-        for (let buf, i = 0, len = arr.length; i < len; i++) {
-            buf = arr[i]
-            buf = Resp.encodeArray(buf)
-            bufs.push(buf)
-            length += buf.length
+        const count = arr.length
+        let finalString = '*' + count + CRLF
+
+        for (let value of arr) {
+            finalString += this.parseValue(value)
         }
-    
-        return Buffer.concat(bufs, length).toString()
+
+        return finalString
+    }
+
+    static encodeError (name, message) {
+        return '-' + name + ' ' + message + CRLF
+    }
+
+    static encodeBulkError (name, message){
+        const error = name + ' ' + message
+        return '!' + error.length + CRLF + error + CRLF
+    }
+
+    static encodeVerbatimString(str){
+        return '=' + str.length + CRLF + str + CRLF
+    }
+
+    static parseValue(value){
+        return this.encodeInteger(value)
+    }
+
+    static encodeMap(map){
+        const count = map.size
+        let finalString = '%' + count + CRLF
+
+        map.forEach((value, key, map) => {
+            finalString += this.encodeString(key.toString())
+            finalString += this.parseValue(value)
+        })
+
+        return finalString
+    }
+
+    static encodeSet(set){
+        const count = set.size;
+        let finalString = '~' + count + CRLF
+
+        for (let value of set) {
+            finalString += this.parseValue(value)
+        }
+
+        return finalString
+    }
+
+    static encodePush(set){
+        const count = set.size;
+        let finalString = '>' + count + CRLF
+
+        for (let value of set) {
+            finalString += this.parseValue(value)
+        }
+
+        return finalString
     }
 }

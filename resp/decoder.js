@@ -1,6 +1,6 @@
 const CRLF = "\r\n"
 
-class Parser {
+class Decoder {
   constructor() {
     this.commands = {
       PING: this.parsePing,
