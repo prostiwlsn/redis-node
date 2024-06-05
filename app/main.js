@@ -1,4 +1,4 @@
-const handler = require("handler");
+const handler = require("./handler");
 const net = require("net");
 
 const storage = {}
