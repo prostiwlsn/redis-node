@@ -11,7 +11,7 @@ class Encoder{
         finalString += '$' + parts[0].length + CRLF + parts[0].toUpperCase()
 
         for (let i = 1; i < parts.length; i++){
-            finalString += encodeBulkString(parts[i])
+            finalString += this.encodeBulkString(parts[i])
         }
 
         return finalString
