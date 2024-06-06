@@ -32,11 +32,15 @@ class Handler {
     }
 
     handleGet(args, storage){
-        return encoder.encodeBulkString(storage[args[0]])
+        return storage[args[0]] === undefined ? encoder.encodeError("UNDEFINED", "value not found") : encoder.encodeBulkString(storage[args[0]])
     }
 
     handleDel(args, storage){
-
+        if(storage[args[0]] === undefined){
+            return encoder.encodeError("UNDEFINED", "value not found")
+        }
+        delete storage[args[0]]
+        return encoder.encodeString('Ok')
     }
 }
 
