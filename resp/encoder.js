@@ -8,7 +8,7 @@ class Encoder{
         
         finalString += '*' + parts.length + CRLF
 
-        finalString += '$' + parts[0].length + CRLF + parts[0].toUpperCase() + CRLF
+        finalString += '$' + parts[0].length + CRLF + parts[0].toUpperCase()
 
         for (let i = 1; i < parts.length; i++){
             finalString += encodeBulkString(parts[i])
