@@ -29,7 +29,7 @@ class Encoder{
         return ':' + num + CRLF
     }
 
-    static encodeInteger (num) {
+    static encodeBigInteger (num) {
         return '(' + num + CRLF
     }
 
