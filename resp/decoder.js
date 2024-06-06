@@ -14,9 +14,14 @@ class Decoder {
   parse(input) {
     let parts = input.split("\r\n");
 
+    parts.pop()
+
+    console.log(JSON.stringify(input))
+
     const attributePatern = /^[$*:].*/
 
     parts = parts.filter(part => !attributePatern.test(part))
+    console.log(parts)
 
     const command = parts[0].toUpperCase();
     const args = parts.slice(1);
@@ -29,6 +34,7 @@ class Decoder {
   }
   
   parsePing(args) {
+    console.log(args)
     if (args.length !== 0) {
       throw new Error('PING command does not take any arguments');
     }

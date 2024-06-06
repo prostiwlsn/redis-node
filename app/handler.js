@@ -1,4 +1,4 @@
-const encoder = require('../resp/encoder');
+const encoder = require('../resp/encoder').encoder;
 const decoder = require('../resp/decoder').decoder;
 
 class Handler {
@@ -19,11 +19,11 @@ class Handler {
     }
 
     handlePing(args, storage){
-        return Encoder.encodeString('PONG')
+        return encoder.encodeString('PONG')
     }
 
     handleEcho(args, storage){
-        return Encoder.encodeBulkString(command.args[0])
+        return encoder.encodeBulkString(command.args[0])
     }
 
     handleSet(args, storage){
