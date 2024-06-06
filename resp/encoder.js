@@ -3,12 +3,16 @@ const CRLF = '\r\n'
 class Encoder{
     static encodeCommand (command){
         const parts = command.split(" ")
+        parts[parts.length - 1] = parts[parts.length - 1].replace(/\r\n/g, "")
+        console.log(parts)
 
         let finalString = ""
         
         finalString += '*' + parts.length + CRLF
 
         finalString += '$' + parts[0].length + CRLF + parts[0].toUpperCase() + CRLF
+
+        console.log(JSON.stringify(finalString))
 
         for (let i = 1; i < parts.length; i++){
             finalString += this.encodeBulkString(parts[i])
