@@ -27,11 +27,11 @@ class Handler {
     }
 
     handleSet(args, storage){
-
+        storage[args[0]] = args[1]
     }
 
     handleGet(args, storage){
-
+        return encoder.encodeBulkString(storage[args[0]])
     }
 
     handleDel(args, storage){
