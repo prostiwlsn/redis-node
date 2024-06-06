@@ -12,7 +12,7 @@ class Decoder {
   }
   
   parse(input) {
-    let parts = input.trim().split("\r\n");
+    let parts = input.split("\r\n");
 
     const attributePatern = /^[$*:].*/
 
@@ -62,4 +62,8 @@ class Decoder {
     }
     return { command: 'DEL', args: args };
   }
+}
+
+module.exports = {
+  decoder: new Decoder()
 }

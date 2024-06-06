@@ -1,7 +1,7 @@
 const CRLF = '\r\n'
 
 class Encoder{
-    static encodeCommand(command){
+    static encodeCommand (command){
         const parts = command.split(" ")
 
         let finalString = ""
@@ -120,4 +120,8 @@ class Encoder{
 
         return finalString
     }
+}
+
+module.exports = {
+    encoder: Encoder
 }

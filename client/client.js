@@ -16,7 +16,7 @@ client.on('data', data => {
 });
 
 process.stdin.on('data', data => {
-    client.write(Encoder.encodeCommand(data.toString()));
+    client.write(encoder.encoder.encodeCommand(data.toString()));
 });
 
 client.on('close', () => {

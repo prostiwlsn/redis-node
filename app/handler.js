@@ -1,5 +1,5 @@
 const encoder = require('../resp/encoder');
-const decoder = require('../resp/decoder');
+const decoder = require('../resp/decoder').decoder;
 
 class Handler {
     constructor() {
@@ -38,3 +38,7 @@ class Handler {
 
     }
 }
+
+module.exports = {
+    handler: new Handler()
+  }
