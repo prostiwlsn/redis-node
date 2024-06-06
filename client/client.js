@@ -12,7 +12,7 @@ client.connect(serverPort, serverHost, () => {
 });
 
 client.on('data', data => {
-    console.log(data);
+    console.log(data.toString());
 });
 
 process.stdin.on('data', data => {
