@@ -23,7 +23,7 @@ class Handler {
     }
 
     handleEcho(args, storage){
-        return encoder.encodeBulkString(command.args[0])
+        return encoder.encodeBulkString(args[0])
     }
 
     handleSet(args, storage){
