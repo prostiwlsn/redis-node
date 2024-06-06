@@ -15,7 +15,7 @@ class Handler {
     handleCommand(command, storage){
         let parsedCommand = decoder.parse(command)
 
-        return commands[parsedCommand.command](parsedCommand.args, storage)
+        return this.commands[parsedCommand.command](parsedCommand.args, storage)
     }
 
     handlePing(args, storage){
