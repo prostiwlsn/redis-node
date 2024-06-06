@@ -28,6 +28,7 @@ class Handler {
 
     handleSet(args, storage){
         storage[args[0]] = args[1]
+        return encoder.encodeString('Ok')
     }
 
     handleGet(args, storage){

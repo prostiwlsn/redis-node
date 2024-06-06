@@ -52,7 +52,7 @@ class Decoder {
     if (args.length < 2) {
       throw new Error('SET command requires at least two arguments');
     }
-    return { command: 'SET', args: [args[0], args.slice(1).join(' ')] };
+    return { command: 'SET', args: [args[0], args[1]] };
   }
   
   parseGet(args) {

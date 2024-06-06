@@ -12,11 +12,11 @@ class Encoder{
 
         finalString += '$' + parts[0].length + CRLF + parts[0].toUpperCase() + CRLF
 
-        console.log(JSON.stringify(finalString))
-
         for (let i = 1; i < parts.length; i++){
             finalString += this.encodeBulkString(parts[i])
         }
+
+        console.log(JSON.stringify(finalString))
 
         return finalString
     }
