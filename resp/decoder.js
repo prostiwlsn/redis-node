@@ -194,7 +194,7 @@ class Decoder {
     throw new Error('Invalid Map format');
   }
 
-  parseSet(str) {
+  parseSetData(str) {
     if (str.startsWith('~')) {
       const length = parseInt(str.slice(1, str.indexOf('\r\n')), 10);
       let set = new Set();
