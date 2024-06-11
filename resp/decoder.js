@@ -49,9 +49,22 @@ class Decoder {
   }
   
   parseSet(args) {
-    if (args.length < 2) {
-      throw new Error('SET command requires at least two arguments');
+    if (args.length != 2 && args.length != 4) {
+      throw new Error('SET command requires two or four arguments');
     }
+
+    if (args.length == 4){
+      if (args[2] != "ex" && args[2] != "px"){
+        throw new Error('Invalid argument')
+      }
+
+      if (isNaN(parseInt(args[3]))){
+        throw new Error('Invalid time period')
+      }
+
+      return { command: 'SET', args: [args[0], args[1], args[2], parseInt(args[3])] };
+    }
+
     return { command: 'SET', args: [args[0], args[1]] };
   }
   
