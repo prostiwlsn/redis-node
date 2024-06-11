@@ -48,7 +48,8 @@ class Handler {
     }
 
     handleGet(args, storage){
-        return storage[args[0]] === undefined ? encoder.encodeError("UNDEFINED", "value not found") : encoder.encodeBulkString(storage[args[0].value])
+        console.log(storage[args[0]])
+        return storage[args[0]] === undefined ? encoder.encodeError("UNDEFINED", "value not found") : encoder.encodeBulkString(storage[args[0]].value)
     }
 
     handleDel(args, storage){
