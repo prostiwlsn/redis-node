@@ -27,12 +27,28 @@ class Handler {
     }
 
     handleSet(args, storage){
-        storage[args[0]] = args[1]
+        storage[args[0]] = {value: args[1], ttl: -1}
+
+        if(args.length == 4){
+            storage[args[0]].ttl = args[3]
+
+            if (args[2] == 'ex'){
+                setTimeout(() => {
+                    delete storage[args[0]];
+                }, args[3] * 1000);
+            }
+            else if (args[2] == 'px'){
+                setTimeout(() => {
+                    delete storage[args[0]];
+                }, args[3]);
+            }
+        }
+
         return encoder.encodeString('Ok')
     }
 
     handleGet(args, storage){
-        return storage[args[0]] === undefined ? encoder.encodeError("UNDEFINED", "value not found") : encoder.encodeBulkString(storage[args[0]])
+        return storage[args[0]] === undefined ? encoder.encodeError("UNDEFINED", "value not found") : encoder.encodeBulkString(storage[args[0].value])
     }
 
     handleDel(args, storage){
@@ -46,4 +62,4 @@ class Handler {
 
 module.exports = {
     handler: new Handler()
-  }
+}
