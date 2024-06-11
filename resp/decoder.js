@@ -8,6 +8,7 @@ class Decoder {
       SET: this.parseSet,
       GET: this.parseGet,
       DEL: this.parseDel,
+      TTL: this.parseTtl
     };
   }
   
@@ -80,6 +81,13 @@ class Decoder {
       throw new Error('DEL command requires at least one argument');
     }
     return { command: 'DEL', args: args };
+  }
+
+  parseTtl(args){
+    if (args.length != 1) {
+      throw new Error('TTL command requires only one argument');
+    }
+    return { command: 'TTL', args: args };
   }
 
   parseString(str) {
