@@ -2,7 +2,7 @@ const encoder = require('../resp/encoder');
 
 const net = require('net');
 
-const serverHost = '127.0.0.1'; // IP адрес или хост сервера
+const serverHost = '127.0.0.1';
 const serverPort = 6379;
 
 const client = new net.Socket();
@@ -12,11 +12,11 @@ client.connect(serverPort, serverHost, () => {
 });
 
 client.on('data', data => {
-    console.log('Received: ' + data);
+    console.log(data.toString());
 });
 
 process.stdin.on('data', data => {
-    client.write(Encoder.encodeCommand(data.toString()));
+    client.write(encoder.encoder.encodeCommand(data.toString()));
 });
 
 client.on('close', () => {

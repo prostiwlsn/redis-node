@@ -1,8 +1,10 @@
 const CRLF = '\r\n'
 
 class Encoder{
-    static encodeCommand(command){
+    static encodeCommand (command){
         const parts = command.split(" ")
+        parts[parts.length - 1] = parts[parts.length - 1].replace(/\r\n/g, "")
+        console.log(parts)
 
         let finalString = ""
         
@@ -13,6 +15,8 @@ class Encoder{
         for (let i = 1; i < parts.length; i++){
             finalString += this.encodeBulkString(parts[i])
         }
+
+        console.log(JSON.stringify(finalString))
 
         return finalString
     }
@@ -120,4 +124,8 @@ class Encoder{
 
         return finalString
     }
+}
+
+module.exports = {
+    encoder: Encoder
 }
