@@ -89,7 +89,7 @@ class Encoder{
         let finalString = '*' + count + CRLF
 
         for (let value of arr) {
-            finalString += this.parseValue(value)
+            finalString += this.encodeBulkString(value)
         }
 
         return finalString
