@@ -2,7 +2,28 @@ const CRLF = '\r\n'
 
 class Encoder{
     static encodeCommand (command){
-        const parts = command.split(" ")
+        //const parts = command.split(" ")
+        const parts = [];
+        let part = '';
+        let insideQuotes = false;
+
+        for (let i = 0; i < command.length; i++) {
+        if (command[i] === ' ' && !insideQuotes) {
+            if (part !== '') {
+            parts.push(part);
+            part = '';
+            }
+        } else if (command[i] === '"') {
+            insideQuotes = !insideQuotes;
+        } else {
+            part += command[i];
+        }
+        }
+
+        if (part !== '') {
+            parts.push(part);
+        }
+
         parts[parts.length - 1] = parts[parts.length - 1].replace(/\r\n/g, "")
         console.log(parts)
 
@@ -33,7 +54,7 @@ class Encoder{
         return ':' + num + CRLF
     }
 
-    static encodeInteger (num) {
+    static encodeBigInteger (num) {
         return '(' + num + CRLF
     }
 
@@ -68,7 +89,7 @@ class Encoder{
         let finalString = '*' + count + CRLF
 
         for (let value of arr) {
-            finalString += this.parseValue(value)
+            finalString += this.encodeBulkString(value)
         }
 
         return finalString
