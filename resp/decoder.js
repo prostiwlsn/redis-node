@@ -90,6 +90,28 @@ class Decoder {
     return { command: 'TTL', args: args };
   }
 
+  parseLpush(args){
+    if (args.length < 2) {
+      throw new Error('LPUSH command requires at least two arguments');
+    }
+  }
+
+  parseLpop(args){
+    if (args.length != 1) {
+      throw new Error('LPOP command requires only one argument');
+    }
+
+    return { command: 'LPOP', args: args };
+  }
+
+  parseLrange(args){
+    if (args.length != 3) {
+      throw new Error('LRANGE command requires only three arguments');
+    }
+
+    return { command: 'LRANGE', args: args };
+  }
+
   parseString(str) {
     if (str.startsWith('+')) {
       return str.slice(1, -2);
