@@ -8,7 +8,10 @@ class Decoder {
       SET: this.parseSet,
       GET: this.parseGet,
       DEL: this.parseDel,
-      TTL: this.parseTtl
+      TTL: this.parseTtl,
+      LPUSH: this.parseLpush,
+      LPOP: this.parseLpop,
+      LRANGE: this.parseLrange
     };
   }
   
