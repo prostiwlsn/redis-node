@@ -97,6 +97,8 @@ class Decoder {
     if (args.length < 2) {
       throw new Error('LPUSH command requires at least two arguments');
     }
+
+    return { command: 'LPUSH', args: args };
   }
 
   parseLpop(args){
