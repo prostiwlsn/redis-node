@@ -130,7 +130,7 @@ class Handler {
             return encoder.encodeArray([])
         }
 
-        rightRange = rightRange >= storage[args[0]].length || rightRange < 0 ? storage[args[0]].length-1 : rightRange
+        rightRange = rightRange >= storage[args[0]].length || rightRange < 0 ? storage[args[0]].length : rightRange+1
 
         return encoder.encodeArray(storage[args[0]].slice(leftRange, rightRange))
     }
