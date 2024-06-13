@@ -11,7 +11,11 @@ class Decoder {
       TTL: this.parseTtl,
       LPUSH: this.parseLpush,
       LPOP: this.parseLpop,
-      LRANGE: this.parseLrange
+      LRANGE: this.parseLrange,
+      SELECT: this.parseSelect,
+      HSET: this.parseHset,
+      HGET: this.parseHget,
+      HGETALL: this.parseHgetall
     };
   }
   
@@ -115,6 +119,41 @@ class Decoder {
     }
 
     return { command: 'LRANGE', args: args };
+  }
+
+  parseSelect(args){
+    if (args.length != 1){
+      throw new Error('SELECT command requires only one argument');
+    }
+    if(isNaN(parseInt(args[0]))){
+      throw new Error('Wrong argument type');
+    }
+
+    return { command: 'SELECT', args: [parseInt(args[0])] };
+  }
+
+  parseHset(args){
+    if (args.length % 2 == 0 || args.length <= 2){
+      throw new Error('Wrong argumens')
+    }
+
+    return { command: 'HSET', args: args };
+  }
+
+  parseHget(args){
+    if (args.length !== 2) {
+      throw new Error('HGET command requires exactly one argument');
+    }
+
+    return { command: 'HGET', args: args };
+  }
+
+  parseHgetall(args){
+    if (args.length !== 2) {
+      throw new Error('HGETALL command requires exactly one argument');
+    }
+
+    return { command: 'HGETALL', args: args };
   }
 
   parseString(str) {
