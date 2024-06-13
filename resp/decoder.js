@@ -8,7 +8,11 @@ class Decoder {
       SET: this.parseSet,
       GET: this.parseGet,
       DEL: this.parseDel,
-      TTL: this.parseTtl
+      TTL: this.parseTtl,
+      LPUSH: this.parseLpush,
+      LPOP: this.parseLpop,
+      LRANGE: this.parseLrange,
+      SELECT: this.parseSelect
     };
   }
   
@@ -88,6 +92,41 @@ class Decoder {
       throw new Error('TTL command requires only one argument');
     }
     return { command: 'TTL', args: args };
+  }
+
+  parseLpush(args){
+    if (args.length < 2) {
+      throw new Error('LPUSH command requires at least two arguments');
+    }
+
+    return { command: 'LPUSH', args: args };
+  }
+
+  parseLpop(args){
+    if (args.length != 1) {
+      throw new Error('LPOP command requires only one argument');
+    }
+
+    return { command: 'LPOP', args: args };
+  }
+
+  parseLrange(args){
+    if (args.length != 3) {
+      throw new Error('LRANGE command requires only three arguments');
+    }
+
+    return { command: 'LRANGE', args: args };
+  }
+
+  parseSelect(args){
+    if (args.length != 1){
+      throw new Error('SELECT command requires only one argument');
+    }
+    if(isNaN(parseInt(args[0]))){
+      throw new Error('Wrong argument type');
+    }
+
+    return { command: 'SELECT', args: [parseInt(args[0])] };
   }
 
   parseString(str) {
