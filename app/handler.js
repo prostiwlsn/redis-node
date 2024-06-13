@@ -19,7 +19,11 @@ class Handler {
     handleCommand(command, storage){
         let parsedCommand = decoder.parse(command)
 
-        return this.commands[parsedCommand.command](parsedCommand.args, storage)
+        if(parsedCommand.command == "SELECT"){
+            return this.commands[parsedCommand.command](parsedCommand.args, storage)
+        }
+
+        return this.commands[parsedCommand.command](parsedCommand.args, storage["DB_"+storage.SELECTED_DB_NUMBER])
     }
 
     handlePing(args, storage){
@@ -133,6 +137,55 @@ class Handler {
         rightRange = rightRange >= storage[args[0]].length || rightRange < 0 ? storage[args[0]].length : rightRange+1
 
         return encoder.encodeArray(storage[args[0]].slice(leftRange, rightRange))
+    }
+
+    handleSelect(args, storage){
+        storage.SELECTED_DB_NUMBER = args[0] //["DB_"+storage.SELECTED_DB_NUMBER]
+
+        if (storage["DB_"+storage.SELECTED_DB_NUMBER]){
+            storage["DB_"+storage.SELECTED_DB_NUMBER] = {}
+        }
+
+        return encoder.encodeString('Ok')
+    }
+
+    handleHset(args, storage){
+        storage[args[0]] = new Map();
+
+        for (let i = 1; i < args.length; i += 2){
+            storage[args[0]].set(args[i], args[i+1])
+        }
+
+        return encoder.encodeString('Ok')
+    }
+
+    handleHget(args, storage){
+        if(storage[args[0]] === undefined){
+            return encoder.encodeError("UNDEFINED", "value not found")
+        }
+        else if (!storage[args[0] instanceof Map]){
+            return encoder.encodeError("TYPE ERROR", "value type does not match")
+        }
+        
+        return storage[args[0]].get([args[1]]) != undefined ? encoder.encodeBulkString(storage[args[0]].get([args[1]])) : encoder.encodeNull()
+    }
+
+    handleHgetall(args, storage){
+        if(storage[args[0]] === undefined){
+            return encoder.encodeError("UNDEFINED", "value not found")
+        }
+        else if (!storage[args[0] instanceof Map]){
+            return encoder.encodeError("TYPE ERROR", "value type does not match")
+        }
+
+        let result = []
+
+        for (let [key, value] of storage[args[0]]){
+            result.push(key)
+            result.push(value)
+        }
+
+        return encoder.encodeArray(result)
     }
 }
 
