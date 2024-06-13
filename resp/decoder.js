@@ -12,7 +12,10 @@ class Decoder {
       LPUSH: this.parseLpush,
       LPOP: this.parseLpop,
       LRANGE: this.parseLrange,
-      SELECT: this.parseSelect
+      SELECT: this.parseSelect,
+      HSET: this.parseHset,
+      HGET: this.parseHget,
+      HGETALL: this.parseHgetall
     };
   }
   
@@ -127,6 +130,30 @@ class Decoder {
     }
 
     return { command: 'SELECT', args: [parseInt(args[0])] };
+  }
+
+  parseHset(args){
+    if (args.length % 2 == 0 || args.length <= 2){
+      throw new Error('Wrong argumens')
+    }
+
+    return { command: 'HSET', args: args };
+  }
+
+  parseHget(args){
+    if (args.length !== 2) {
+      throw new Error('HGET command requires exactly one argument');
+    }
+
+    return { command: 'HGET', args: args };
+  }
+
+  parseHgetall(args){
+    if (args.length !== 2) {
+      throw new Error('HGETALL command requires exactly one argument');
+    }
+
+    return { command: 'HGETALL', args: args };
   }
 
   parseString(str) {
