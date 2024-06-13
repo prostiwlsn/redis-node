@@ -19,7 +19,7 @@ class Handler {
     handleCommand(command, storage){
         let parsedCommand = decoder.parse(command)
 
-        return this.commands[parsedCommand.command](parsedCommand.args, storage)
+        return this.commands[parsedCommand.command](parsedCommand.args, storage["DB_"+storage.SELECTED_DB_NUMBER])
     }
 
     handlePing(args, storage){
@@ -133,6 +133,12 @@ class Handler {
         rightRange = rightRange >= storage[args[0]].length || rightRange < 0 ? storage[args[0]].length : rightRange+1
 
         return encoder.encodeArray(storage[args[0]].slice(leftRange, rightRange))
+    }
+
+    handleSelect(args, storage){
+        storage.SELECTED_DB_NUMBER = args[0] //["DB_"+storage.SELECTED_DB_NUMBER]
+
+        return encoder.encodeString('Ok')
     }
 }
 
