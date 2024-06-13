@@ -117,6 +117,17 @@ class Decoder {
     return { command: 'LRANGE', args: args };
   }
 
+  parseSelect(args){
+    if (args.length != 1){
+      throw new Error('SELECT command requires only one argument');
+    }
+    if(isNaN(parseInt(args[0]))){
+      throw new Error('Wrong argument type');
+    }
+
+    return { command: 'SELECT', args: [parseInt(args[0])] };
+  }
+
   parseString(str) {
     if (str.startsWith('+')) {
       return str.slice(1, -2);
