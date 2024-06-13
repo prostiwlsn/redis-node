@@ -3,9 +3,11 @@ const net = require("net");
 
 const storage = {}
 
-const server = net.createServer((connection) => {
-   console.log("Server started")
+handler.handleCommand("*2"+CRLF+"$6"+CRLF+"SELECT"+CRLF+"$1"+CRLF+"0"+CRLF)
 
+console.log("Server started")
+
+const server = net.createServer((connection) => {
    connection.on("data", (data) => {
       connection.write(handler.handleCommand(data, storage))
    });
