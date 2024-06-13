@@ -1,9 +1,10 @@
 const handler = require("./handler").handler;
 const net = require("net");
+const CRLF = "\r\n"
 
 const storage = {}
 
-handler.handleCommand("*2"+CRLF+"$6"+CRLF+"SELECT"+CRLF+"$1"+CRLF+"0"+CRLF)
+handler.handleCommand("*2"+CRLF+"$6"+CRLF+"SELECT"+CRLF+"$1"+CRLF+"0"+CRLF, storage)
 
 console.log("Server started")
 

@@ -149,7 +149,7 @@ class Decoder {
   }
 
   parseHgetall(args){
-    if (args.length !== 2) {
+    if (args.length !== 1) {
       throw new Error('HGETALL command requires exactly one argument');
     }
 

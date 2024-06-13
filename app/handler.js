@@ -12,7 +12,11 @@ class Handler {
             TTL: this.handleTtl,
             LPUSH: this.handleLpush,
             LPOP: this.handleLpop,
-            LRANGE: this.handleLrange
+            LRANGE: this.handleLrange,
+            SELECT: this.handleSelect,
+            HSET: this.handleHset,
+            HGET: this.handleHget,
+            HGETALL: this.handleHgetall
         };
     }
 
@@ -142,7 +146,7 @@ class Handler {
     handleSelect(args, storage){
         storage.SELECTED_DB_NUMBER = args[0] //["DB_"+storage.SELECTED_DB_NUMBER]
 
-        if (storage["DB_"+storage.SELECTED_DB_NUMBER]){
+        if (storage["DB_"+storage.SELECTED_DB_NUMBER] == undefined){
             storage["DB_"+storage.SELECTED_DB_NUMBER] = {}
         }
 
@@ -156,6 +160,8 @@ class Handler {
             storage[args[0]].set(args[i], args[i+1])
         }
 
+        console.log(storage[args[0]])
+
         return encoder.encodeString('Ok')
     }
 
@@ -163,18 +169,20 @@ class Handler {
         if(storage[args[0]] === undefined){
             return encoder.encodeError("UNDEFINED", "value not found")
         }
-        else if (!storage[args[0] instanceof Map]){
+        else if (!storage[args[0]] instanceof Map){
             return encoder.encodeError("TYPE ERROR", "value type does not match")
         }
+
+        console.log(storage[args[0]].get(args[1]), typeof storage[args[0]].get(args[1]))
         
-        return storage[args[0]].get([args[1]]) != undefined ? encoder.encodeBulkString(storage[args[0]].get([args[1]])) : encoder.encodeNull()
+        return storage[args[0]].get(args[1]) != undefined ? encoder.encodeBulkString(storage[args[0]].get(args[1])) : encoder.encodeNull()
     }
 
     handleHgetall(args, storage){
         if(storage[args[0]] === undefined){
             return encoder.encodeError("UNDEFINED", "value not found")
         }
-        else if (!storage[args[0] instanceof Map]){
+        else if (!storage[args[0]]  instanceof Map){
             return encoder.encodeError("TYPE ERROR", "value type does not match")
         }
 
