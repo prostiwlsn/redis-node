@@ -11,7 +11,8 @@ class Decoder {
       TTL: this.parseTtl,
       LPUSH: this.parseLpush,
       LPOP: this.parseLpop,
-      LRANGE: this.parseLrange
+      LRANGE: this.parseLrange,
+      SELECT: this.parseSelect
     };
   }
   
