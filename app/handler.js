@@ -19,6 +19,10 @@ class Handler {
     handleCommand(command, storage){
         let parsedCommand = decoder.parse(command)
 
+        if(parsedCommand.command == "SELECT"){
+            return this.commands[parsedCommand.command](parsedCommand.args, storage)
+        }
+
         return this.commands[parsedCommand.command](parsedCommand.args, storage["DB_"+storage.SELECTED_DB_NUMBER])
     }
 
