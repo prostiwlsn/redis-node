@@ -1,5 +1,6 @@
 const encoder = require('../resp/encoder').encoder;
 const decoder = require('../resp/decoder').decoder;
+const writer = require('./aof').writer;
 
 class Handler {
     constructor() {
@@ -22,6 +23,8 @@ class Handler {
 
     handleCommand(command, storage){
         let parsedCommand = decoder.parse(command)
+
+        writer.write(command)
 
         if(parsedCommand.command == "SELECT"){
             return this.commands[parsedCommand.command](parsedCommand.args, storage)

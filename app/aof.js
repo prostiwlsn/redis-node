@@ -9,13 +9,16 @@ class AofConfig{
 class AofReader{
     read(handler, storage, filePath = DEFAULT_AOF_DIRECTORY){
         let wholeText = ""
-        fs.readFile(filePath, 'utf8', (err, data) => {
-            if (err) {
-              console.error(err);
-              return;
-            }
-            wholeText = data
-        });
+        try{
+            wholeText = fs.readFileSync(filePath, 'utf8');
+        }
+        catch (err){
+            console.log(err)
+        }
+
+        if (wholeText.length == 0){
+            return
+        }
 
         let index = 0;
         let parts = wholeText.split(CRLF)
@@ -23,7 +26,9 @@ class AofReader{
         while (index < parts.length){
             const nextIndex = (parseInt(parts[index][1]) + index) * 2 + 1
 
-            const command = parts.slice(index, nextIndex)
+            const command = parts.slice(index, nextIndex).join(CRLF) + (nextIndex < parts.length ? CRLF : "");
+
+            console.log(index, nextIndex, parts.length)
 
             handler.handleCommand(command, storage)
 

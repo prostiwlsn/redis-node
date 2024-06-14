@@ -1,4 +1,5 @@
 const encoder = require('../resp/encoder');
+const CRLF = "\r\n"
 
 const net = require('net');
 
@@ -16,7 +17,7 @@ client.on('data', data => {
 });
 
 process.stdin.on('data', data => {
-    client.write(encoder.encoder.encodeCommand(data.toString()));
+    client.write(encoder.encoder.encodeCommand(data.toString())); //.replace(new RegExp(CRLF, 'g'), '')
 });
 
 client.on('close', () => {

@@ -1,8 +1,11 @@
 const handler = require("./handler").handler;
+const reader = require("./aof").reader
 const net = require("net");
-const CRLF = "\r\n"
+const CRLF = "\r\n" 
 
 const storage = {}
+
+reader.read(handler, storage)
 
 handler.handleCommand("*2"+CRLF+"$6"+CRLF+"SELECT"+CRLF+"$1"+CRLF+"0"+CRLF, storage)
 
