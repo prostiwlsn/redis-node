@@ -6,8 +6,9 @@ const CRLF = "\r\n"
 const storage = {}
 
 reader.read(handler, storage)
-
-handler.handleCommand("*2"+CRLF+"$6"+CRLF+"SELECT"+CRLF+"$1"+CRLF+"0"+CRLF, storage)
+if (storage["DB_0"] == undefined){
+   handler.handleCommand("*2"+CRLF+"$6"+CRLF+"SELECT"+CRLF+"$1"+CRLF+"0"+CRLF, storage)
+}
 
 console.log("Server started")
 
