@@ -23,12 +23,16 @@ class AofReader{
         let index = 0;
         let parts = wholeText.split(CRLF)
 
-        while (index < parts.length){
-            const nextIndex = (parseInt(parts[index][1]) + index) * 2 + 1
+        while (index <= parts.length){
+            const nextIndex = (parseInt(parts[index][1]) * 2 + index) + 1
 
             const command = parts.slice(index, nextIndex).join(CRLF) + (nextIndex < parts.length ? CRLF : "");
 
             console.log(index, nextIndex, parts.length)
+
+            if (command.length == 0){
+                break
+            }
 
             handler.handleCommand(command, storage)
 
