@@ -23,3 +23,11 @@ process.stdin.on('data', data => {
 client.on('close', () => {
     console.log('Connection closed');
 });
+
+client.on("end", () => {
+    process.exit()
+})
+
+client.on("error", () => {
+    console.log("error occurred")
+})
