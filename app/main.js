@@ -17,10 +17,22 @@ const server = net.createServer((connection) => {
       try{
          connection.write(handler.handleCommand(data.toString(), storage))
       }
-      catch{
-         console.log("Writing error")
+      catch(err){
+         console.log("Writing error:" + err.message)
       }
    });
+
+   connection.on("close", () => {
+      connection.end();
+   })
+
+   connection.on("end", () => {
+      console.log("connection ended")
+   })
+
+   connection.on("error", () => {
+      console.log("error occurred")
+   })
 });
 
 server.listen(6379, "127.0.0.1");
