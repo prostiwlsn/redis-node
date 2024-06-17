@@ -14,7 +14,12 @@ console.log("Server started")
 
 const server = net.createServer((connection) => {
    connection.on("data", (data) => {
-      connection.write(handler.handleCommand(data.toString(), storage))
+      try{
+         connection.write(handler.handleCommand(data.toString(), storage))
+      }
+      catch{
+         console.log("Writing error")
+      }
    });
 });
 

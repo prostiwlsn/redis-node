@@ -22,15 +22,32 @@ class Handler {
     }
 
     handleCommand(command, storage){
-        let parsedCommand = decoder.parse(command)
+        let parsedCommand;
 
-        writer.write(command)
-
-        if(parsedCommand.command == "SELECT"){
-            return this.commands[parsedCommand.command](parsedCommand.args, storage)
+        try{
+            parsedCommand = decoder.parse(command)
+        }
+        catch{
+            return encoder.encodeError("PARSING ERROR", "The command cannot be parsed")
         }
 
-        return this.commands[parsedCommand.command](parsedCommand.args, storage["DB_"+storage.SELECTED_DB_NUMBER])
+        try{
+            writer.write(command)
+        }
+        catch{
+            console.log("The command cannot be written")
+        }
+
+        try{
+            if(parsedCommand.command == "SELECT"){
+                return this.commands[parsedCommand.command](parsedCommand.args, storage)
+            }
+    
+            return this.commands[parsedCommand.command](parsedCommand.args, storage["DB_"+storage.SELECTED_DB_NUMBER])
+        }
+        catch(err){
+            return encoder.encodeError("EXECUTION ERROR", "The command cannot be executed: " + err.message)
+        }
     }
 
     handlePing(args, storage){
