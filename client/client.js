@@ -4,7 +4,10 @@ const CRLF = "\r\n"
 const net = require('net');
 
 const serverHost = '127.0.0.1';
-const serverPort = 6379;
+
+const portIdx = process.argv.indexOf("--port")
+
+const serverPort = portIdx == -1 ? 6379 : process.argv[portIdx + 1]
 
 const client = new net.Socket();
 
