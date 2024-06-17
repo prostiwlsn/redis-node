@@ -35,4 +35,8 @@ const server = net.createServer((connection) => {
    })
 });
 
-server.listen(6379, "127.0.0.1");
+const portIdx = process.argv.indexOf("--port")
+
+const PORT = portIdx == -1 ? 6379 : process.argv[portIdx + 1]
+
+server.listen(PORT, "127.0.0.1");
