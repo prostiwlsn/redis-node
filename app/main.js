@@ -3,7 +3,15 @@ const reader = require("./aof").reader
 const net = require("net");
 const CRLF = "\r\n" 
 
-const storage = {}
+const portIdx = process.argv.indexOf("--port")
+const PORT = portIdx == -1 ? 6379 : process.argv[portIdx + 1]
+
+const replicaofIdx = process.argv.indexOf("--replicaof")
+const masterInfo = replicaofIdx == -1 ? "" : process.argv[replicaofIdx + 1]
+
+const isMaster = masterInfo.length == 0
+
+const storage = {isMaster: isMaster}
 
 reader.read(handler, storage)
 if (storage["DB_0"] == undefined){
@@ -34,9 +42,5 @@ const server = net.createServer((connection) => {
       console.log("error occurred")
    })
 });
-
-const portIdx = process.argv.indexOf("--port")
-
-const PORT = portIdx == -1 ? 6379 : process.argv[portIdx + 1]
 
 server.listen(PORT, "127.0.0.1");

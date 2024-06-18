@@ -21,7 +21,7 @@ class Handler {
         };
     }
 
-    handleCommand(command, storage){
+    handleCommand(command, storage, isWritable = true){
         let parsedCommand;
 
         try{
@@ -32,13 +32,18 @@ class Handler {
         }
 
         try{
-            writer.write(command)
+            if(isWritable){
+                writer.write(command)
+            }
         }
         catch{
             console.log("The command cannot be written")
         }
 
         try{
+            const globalCommands = ["SELECT", "REPLCONF", "PSYNC"]
+            const getCommands = ["PING", "ECHO", "GET", "LRANGE", "SELECT", "HGET", "HGETALL"]
+
             if(parsedCommand.command == "SELECT"){
                 return this.commands[parsedCommand.command](parsedCommand.args, storage)
             }

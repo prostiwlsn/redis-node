@@ -34,7 +34,7 @@ class AofReader{
                 break
             }
 
-            handler.handleCommand(command, storage)
+            handler.handleCommand(command, storage, false)
 
             index = nextIndex
         }
