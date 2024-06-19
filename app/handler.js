@@ -1,6 +1,13 @@
 const encoder = require('../resp/encoder').encoder;
 const decoder = require('../resp/decoder').decoder;
 const writer = require('./aof').writer;
+const reader = require('./aof').reader;
+const sync = require('./sync').sync
+const resync = require('./sync').resync
+
+const globalCommands = ["SELECT"]
+const replCommands = ["REPLCONF", "PSYNC"]
+const getCommands = ["PING", "ECHO", "GET", "LRANGE", "HGET", "HGETALL"]
 
 class Handler {
     constructor() {
@@ -17,11 +24,13 @@ class Handler {
             SELECT: this.handleSelect,
             HSET: this.handleHset,
             HGET: this.handleHget,
-            HGETALL: this.handleHgetall
+            HGETALL: this.handleHgetall,
+            REPLCONF: this.handleReplconf,
+            PSYNC: this.handlePsync
         };
     }
 
-    handleCommand(command, storage, isWritable = true){
+    handleCommand(command, storage, isWritable = true, isResyncMode = false, connection = undefined, isSyncMode = false){
         let parsedCommand;
 
         try{
@@ -32,23 +41,46 @@ class Handler {
         }
 
         try{
-            if(isWritable){
-                writer.write(command)
-            }
-        }
-        catch{
-            console.log("The command cannot be written")
-        }
+            if(globalCommands.includes(parsedCommand.command)){
+                sync(storage, command)
 
-        try{
-            const globalCommands = ["SELECT", "REPLCONF", "PSYNC"]
-            const getCommands = ["PING", "ECHO", "GET", "LRANGE", "SELECT", "HGET", "HGETALL"]
+                try{
+                    if(isWritable && !getCommands.includes(parsedCommand.command) && storage.isMaster && parsedCommand != undefined && parsedCommand.command != undefined){
+                        writer.write(command)
+                    }
+                }
+                catch{
+                    console.log("The command cannot be written")
+                }
 
-            if(parsedCommand.command == "SELECT"){
                 return this.commands[parsedCommand.command](parsedCommand.args, storage)
             }
-    
-            return this.commands[parsedCommand.command](parsedCommand.args, storage["DB_"+storage.SELECTED_DB_NUMBER])
+            else if(replCommands.includes(parsedCommand.command)){
+                return this.commands[parsedCommand.command](parsedCommand.args, storage, connection)
+            }
+
+            if(storage.isMaster || getCommands.includes(parsedCommand.command) || isResyncMode || isSyncMode){
+                const result = this.commands[parsedCommand.command](parsedCommand.args, storage["DB_"+storage.SELECTED_DB_NUMBER])
+
+                if(!getCommands.includes(parsedCommand.command)){
+                    sync(storage, encoder.encodeCommand("SELECT " + storage.SELECTED_DB_NUMBER))
+                    sync(storage, command)
+                }
+
+                try{
+                    if(isWritable && !getCommands.includes(parsedCommand.command) && storage.isMaster && parsedCommand != undefined && parsedCommand.command != undefined){
+                        writer.write(command)
+                    }
+                }
+                catch{
+                    console.log("The command cannot be written")
+                }
+
+                return result
+            }
+            else{
+                return encoder.encodeError("ERR", "this server is a replica")
+            }
         }
         catch(err){
             return encoder.encodeError("EXECUTION ERROR", "The command cannot be executed: " + err.message)
@@ -221,9 +253,9 @@ class Handler {
         return encoder.encodeArray(result)
     }
 
-    handleReplconf(args, storage){
+    handleReplconf(args, storage, connection){
         if(args[0] == "listening-port"){
-            storage.replicas.push({port: parseInt(args[0]), id: storage.replicaIncrId})
+            storage.replicas[storage.replicaIncrId] = {port: parseInt(args[0]), id: storage.replicaIncrId, connection}
             storage.replicaIncrId++
             return encoder.encodeString("OK")
         }
@@ -235,10 +267,25 @@ class Handler {
         }
     }
 
-    handlePsync(args, storage){
-        if(args[0] == "?" && args[1] == "-1"){
-            return encoder.encodeString("FULLRESYNC " + storage.master_replid + " 0")
+    handlePsync(args, storage, connection){
+        if(args[0] == "?" && args[1] == "-1" && args.length == 2){
+            connection.write(encoder.encodeString("FULLRESYNC " + storage.master_replid + " 0"))
+            storage.isResyncMode = true
+
+            return resync()
         }
+        else if (args.length != 2){
+            return encoder.encodeError("ERR", "wrong args")
+        }
+        else{
+            return encoder.encodeString("OK")
+        }
+    }
+
+    handleResync(storage, commandString){
+        storage.isResyncMode = false
+
+        reader.readFromString(commandString)
     }
 }
 

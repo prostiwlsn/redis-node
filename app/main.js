@@ -25,10 +25,12 @@ function generateRandomString(length) {
 
 const storage = {
    isMaster: isMaster,
-   replicas: [],
+   replicas: {},
    replicaIncrId: 0,
    master_replid: generateRandomString(40),
-   master_repl_offset: 0
+   master_repl_offset: 0,
+   isResyncMode: false,
+   isSyncMode: false
 }
 
 if(isMaster){
@@ -46,6 +48,15 @@ else{
    client.write(`*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n`)
    
    client.write(`*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n`);
+
+   client.on('data', data => {
+      if(storage.isResyncMode){
+         handler.handleResync(storage, data.toString())
+      }
+      else{
+         handler.handleCommand(data.toString(), storage, false, false, undefined, true)
+      }
+   });
 }
 
 if (storage["DB_0"] == undefined){
@@ -57,7 +68,7 @@ console.log("Server started")
 const server = net.createServer((connection) => {
    connection.on("data", (data) => {
       try{
-         connection.write(handler.handleCommand(data.toString(), storage))
+         connection.write(handler.handleCommand(data.toString(), storage, true, storage.isResyncMode, connection, false))
       }
       catch(err){
          console.log("Writing error: " + err.message)

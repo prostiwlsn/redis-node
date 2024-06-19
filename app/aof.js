@@ -39,6 +39,31 @@ class AofReader{
             index = nextIndex
         }
     }
+
+    readFromString(handler, storage, commandString){
+        if (commandString.length == 0){
+            return
+        }
+
+        let index = 0;
+        let parts = commandString.split(CRLF)
+
+        while (index <= parts.length){
+            const nextIndex = (parseInt(parts[index][1]) * 2 + index) + 1
+
+            const command = parts.slice(index, nextIndex).join(CRLF) + (nextIndex < parts.length ? CRLF : "");
+
+            console.log(index, nextIndex, parts.length)
+
+            if (command.length == 0){
+                break
+            }
+
+            handler.handleCommand(command, storage, false)
+
+            index = nextIndex
+        }
+    }
 }
 
 class AofWriter{
