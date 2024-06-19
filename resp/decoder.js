@@ -15,7 +15,9 @@ class Decoder {
       SELECT: this.parseSelect,
       HSET: this.parseHset,
       HGET: this.parseHget,
-      HGETALL: this.parseHgetall
+      HGETALL: this.parseHgetall,
+      REPLCONF: this.parseReplconf,
+      PSYNC: this.parsePsync
     };
   }
   
@@ -154,6 +156,18 @@ class Decoder {
     }
 
     return { command: 'HGETALL', args: args };
+  }
+
+  parseReplconf(args){
+    return { command: 'REPLCONF', args: args };
+  }
+
+  parsePsync(args){
+    if (args.length !== 2) {
+      throw new Error('PSYNC command requires exactly two arguments');
+    }
+
+    return { command: 'PSYNC', args: args };
   }
 
   parseString(str) {

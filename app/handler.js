@@ -220,6 +220,26 @@ class Handler {
 
         return encoder.encodeArray(result)
     }
+
+    handleReplconf(args, storage){
+        if(args[0] == "listening-port"){
+            storage.replicas.push({port: parseInt(args[0]), id: storage.replicaIncrId})
+            storage.replicaIncrId++
+            return encoder.encodeString("OK")
+        }
+        else if(args[0] == "capa"){
+            return encoder.encodeString("OK")
+        }
+        else{
+            return encoder.encodeError("ERR", "wrong args")
+        }
+    }
+
+    handlePsync(args, storage){
+        if(args[0] == "?" && args[1] == "-1"){
+            return encoder.encodeString("FULLRESYNC " + storage.master_replid + " 0")
+        }
+    }
 }
 
 module.exports = {
