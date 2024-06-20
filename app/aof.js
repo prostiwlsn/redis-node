@@ -59,7 +59,12 @@ class AofReader{
                 break
             }
 
-            handler.handleCommand(command, storage, false)
+            try{
+                handler.handleCommand(command, storage, false, false, undefined, true)
+            }
+            catch(err){
+                console.log(err.message)
+            }
 
             index = nextIndex
         }

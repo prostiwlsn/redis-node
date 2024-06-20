@@ -62,7 +62,7 @@ class Handler {
             if(storage.isMaster || getCommands.includes(parsedCommand.command) || isResyncMode || isSyncMode){
                 const result = this.commands[parsedCommand.command](parsedCommand.args, storage["DB_"+storage.SELECTED_DB_NUMBER])
 
-                if(!getCommands.includes(parsedCommand.command)){
+                if(!getCommands.includes(parsedCommand.command) && !replCommands.includes(parsedCommand.command) && storage.isMaster){
                     sync(storage, encoder.encodeCommand("SELECT " + storage.SELECTED_DB_NUMBER))
                     sync(storage, command)
                 }
@@ -83,6 +83,8 @@ class Handler {
             }
         }
         catch(err){
+            console.log(err)
+
             return encoder.encodeError("EXECUTION ERROR", "The command cannot be executed: " + err.message)
         }
     }
@@ -255,7 +257,7 @@ class Handler {
 
     handleReplconf(args, storage, connection){
         if(args[0] == "listening-port"){
-            storage.replicas[storage.replicaIncrId] = {port: parseInt(args[0]), id: storage.replicaIncrId, connection}
+            storage.replicas.push({port: parseInt(args[0]), id: storage.replicaIncrId, connection})
             storage.replicaIncrId++
             return encoder.encodeString("OK")
         }
@@ -269,10 +271,7 @@ class Handler {
 
     handlePsync(args, storage, connection){
         if(args[0] == "?" && args[1] == "-1" && args.length == 2){
-            connection.write(encoder.encodeString("FULLRESYNC " + storage.master_replid + " 0"))
-            storage.isResyncMode = true
-
-            return resync()
+            return encoder.encodeString("FULLRESYNC " + storage.master_replid + " 0") + resync()
         }
         else if (args.length != 2){
             return encoder.encodeError("ERR", "wrong args")
