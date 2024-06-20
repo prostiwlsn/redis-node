@@ -20,6 +20,22 @@ class Decoder {
       PSYNC: this.parsePsync
     };
   }
+
+  parseResponse(input){
+    const firstByte = input[0]
+    switch(firstByte){
+      case '*':
+        return this.parseArray(input)
+      case '$':
+        return this.parseBulkString(input)
+      case '+':
+        return this.parseString(input)
+      case '-':
+        return this.parseError(input)
+      default:
+        return JSON.stringify(input)
+    }
+  }
   
   parse(input) {
     let parts = input.split("\r\n");

@@ -25,7 +25,7 @@ class Encoder{
         }
 
         parts[parts.length - 1] = parts[parts.length - 1].replace(/\r\n/g, "")
-        console.log(parts)
+        //console.log(parts)
 
         let finalString = ""
         
@@ -37,7 +37,7 @@ class Encoder{
             finalString += this.encodeBulkString(parts[i])
         }
 
-        console.log(JSON.stringify(finalString))
+        //console.log(JSON.stringify(finalString))
 
         return finalString
     }

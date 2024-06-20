@@ -1,4 +1,5 @@
 const encoder = require('../resp/encoder');
+const decoder = require('../resp/decoder').decoder
 const CRLF = "\r\n"
 
 const net = require('net');
@@ -16,7 +17,7 @@ client.connect(serverPort, serverHost, () => {
 });
 
 client.on('data', data => {
-    console.log(data.toString());
+    console.log(decoder.parseResponse(data.toString()));
 });
 
 process.stdin.on('data', data => {
