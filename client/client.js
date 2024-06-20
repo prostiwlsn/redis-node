@@ -34,4 +34,5 @@ client.on("end", () => {
 
 client.on("error", () => {
     console.log("error occurred")
+    client.end()
 })

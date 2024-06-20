@@ -151,7 +151,6 @@ else{
 
    client.on("error", () => {
       console.log("error occurred")
-      process.exit()
    })
 }
 
@@ -181,7 +180,7 @@ const server = net.createServer((connection) => {
                break
             }
 
-            connection.write(handler.handleCommand(command, storage, true, storage.isResyncMode, connection, false))
+            connection.write(handler.handleCommand(command, storage, true, false, connection, false))
 
             index = nextIndex
          }
