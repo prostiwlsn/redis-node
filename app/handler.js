@@ -9,6 +9,35 @@ const globalCommands = ["SELECT"]
 const replCommands = ["REPLCONF", "PSYNC"]
 const getCommands = ["PING", "ECHO", "GET", "LRANGE", "HGET", "HGETALL"]
 
+class SortedSet{
+    constructor(){
+        this.values = []
+    }
+
+    addElement(key, value){
+        if(this.values.filter(value => value.key == key).length != 0){
+            this.values = this.values.filter(value => value.key != key)
+        }
+        this.values.push({key, value})
+
+        this.values.sort((a, b) => a.value - b)
+    }
+
+    rangeElements(start, end){
+        let returnValues = []
+
+        for(let i = start; i < end; i ++){
+            returnValues.push(this.values[i].key)
+            returnValues.push(this.values[i].value)
+        }
+        return returnValues
+    }
+
+    getScore(key){
+        return this.values.filter(value => value.key == key)[0]
+    }
+}
+
 class Handler {
     constructor() {
         this.commands = {
@@ -26,7 +55,15 @@ class Handler {
             HGET: this.handleHget,
             HGETALL: this.handleHgetall,
             REPLCONF: this.handleReplconf,
-            PSYNC: this.handlePsync
+            PSYNC: this.handlePsync,
+            SADD: this.handleSadd,
+            SMEMBERS: this.handleSmembers,
+            SINTER: this.handleSinter,
+            SDIFF: this.handleSdiff,
+            SUNION: this.handleSunion,
+            ZADD: this.handleZadd,
+            ZRANGE: this.handleZrange,
+            ZSCORE: this.handleZscore
         };
     }
 
@@ -285,6 +322,78 @@ class Handler {
         storage.isResyncMode = false
 
         reader.readFromString(commandString)
+    }
+
+    handleSadd(args, storage){
+        if(storage[args[0]] == undefined){
+            storage[args[0]] = new Set()
+        }
+
+        for(let i = 1; i < args.length; i++){
+            storage[args[0]].add(args[i])
+        }
+
+        return encodeString("OK")
+    }
+
+    handleSmembers(args, storage){
+        if(storage[args[0]] == undefined){
+            return encoder.encodeNull()
+        }
+        else if(!(storage[args[0]] instanceof Set)){
+            return encoder.encodeError("TYPE ERROR", "this value is not a set")
+        }
+        else{
+            return encoder.encodeArray(Array.from(storage[args[0]]))
+        }
+    }
+
+    handleSinter(args, storage){
+        if(storage[args[0]] == undefined || storage[args[1]] == undefined){
+            return encoder.encodeNull()
+        }
+        else if(!(storage[args[0]] instanceof Set && storage[args[1]] instanceof Se)){
+            return encoder.encodeError("TYPE ERROR", "this value is not a set")
+        }
+        else{
+            return encoder.encodeArray(Array.from(storage[args[0]].intersection(storage[args[1]])))
+        }
+    }
+
+    handleSdiff(args, storage){
+        if(storage[args[0]] == undefined || storage[args[1]] == undefined){
+            return encoder.encodeNull()
+        }
+        else if(!(storage[args[0]] instanceof Set && storage[args[1]] instanceof Se)){
+            return encoder.encodeError("TYPE ERROR", "this value is not a set")
+        }
+        else{
+            return encoder.encodeArray(Array.from(storage[args[0]].difference(storage[args[1]])))
+        }
+    }
+
+    handleSunion(args, storage){
+        if(storage[args[0]] == undefined || storage[args[1]] == undefined){
+            return encoder.encodeNull()
+        }
+        else if(!(storage[args[0]] instanceof Set && storage[args[1]] instanceof Se)){
+            return encoder.encodeError("TYPE ERROR", "this value is not a set")
+        }
+        else{
+            return encoder.encodeArray(Array.from(storage[args[0]].union(storage[args[1]])))
+        }
+    }
+
+    handleZadd(args, storage){
+
+    }
+
+    handleZrange(args, storage){
+
+    }
+
+    handleZscore(args, storage){
+
     }
 }
 
