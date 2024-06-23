@@ -1,114 +1,161 @@
-const OPCODES = {
-	EOF: 0xff,
-	SELECTDB: 0xfe,
-	EXPIRETIME: 0xfd,
-	EXPIRETIMEMS: 0xfc,
-	RESIZEDB: 0xfb,
-	AUX: 0xfa,
-};
+const SELECTDB_OPCODE = 0xFE;
+const STRING_TYPE = 0;
+const LIST_TYPE = 1;
+const HASH_TYPE = 2;
+const fs = require('fs');
+const { Buffer } = require('buffer');
 
-const redis_main_const = {
-	REDIS_MAGIC_STRING: 5,
-	REDIS_VERSION: 4,
-};
+class RDBWriter {
+    constructor(filePath) {
+        this.filePath = filePath;
+    }
 
-function handleLengthEncoding(data, cursor) {
-    const byte = data[cursor];
-    const lengthType = (byte & 0b11000000) >> 6;
+    write(databases) {
+        const bufferArray = [];
 
-    const lengthValues = [
-        [byte & 0b00111111, cursor + 1],
-        [((byte & 0b00111111) << 8) | data[cursor + 1], cursor + 2],
-        [data.readUInt32BE(cursor + 1), cursor + 5],
-    ];
+        const writeString = (str) => {
+            const strBuffer = Buffer.from(str);
+            bufferArray.push(strBuffer);
+        };
 
-    return (
-        lengthValues[lengthType] || new Error(`Invalid length encoding ${lengthType} at ${cursor}`)
-    );
+        const writeByte = (byte) => {
+            const byteBuffer = Buffer.alloc(1);
+            byteBuffer.writeUInt8(byte);
+            bufferArray.push(byteBuffer);
+        };
+
+        const writeInt = (int) => {
+            const intBuffer = Buffer.alloc(4);
+            intBuffer.writeUInt32BE(int);
+            bufferArray.push(intBuffer);
+        };
+
+        // Write the RDB file header
+        writeString('REDIS');
+        writeString('0009'); // Assuming version 9
+
+        databases.forEach((db, index) => {
+            if (db.strings.size > 0 || db.lists.size > 0 || db.hashes.size > 0) {
+                writeByte(SELECTDB_OPCODE);
+                writeInt(index);
+
+                db.strings.forEach((value, key) => {
+                    writeByte(STRING_TYPE);
+                    writeInt(Buffer.byteLength(key));
+                    writeString(key);
+                    writeInt(Buffer.byteLength(value));
+                    writeString(value);
+                });
+
+                db.lists.forEach((list, key) => {
+                    writeByte(LIST_TYPE);
+                    writeInt(Buffer.byteLength(key));
+                    writeString(key);
+                    writeInt(list.length);
+                    list.forEach(item => {
+                        writeInt(Buffer.byteLength(item));
+                        writeString(item);
+                    });
+                });
+
+                db.hashes.forEach((hash, key) => {
+                    writeByte(HASH_TYPE);
+                    writeInt(Buffer.byteLength(key));
+                    writeString(key);
+                    const entries = Object.entries(hash);
+                    writeInt(entries.length);
+                    entries.forEach(([field, value]) => {
+                        writeInt(Buffer.byteLength(field));
+                        writeString(field);
+                        writeInt(Buffer.byteLength(value));
+                        writeString(value);
+                    });
+                });
+            }
+        });
+
+        writeByte(0xFF); // End of file
+
+        const finalBuffer = Buffer.concat(bufferArray);
+        fs.writeFileSync(this.filePath, finalBuffer);
+    }
 }
 
-class RdbWriter{
+class RDBReader {
+    constructor(filePath) {
+        this.filePath = filePath;
+    }
 
-}
+    read() {
+        const data = fs.readFileSync(this.filePath);
+        const buffer = Buffer.from(data);
+        let offset = 0;
+        let currentDb = 0;
 
-class RdbReader{
-    getKeysValues(data) {
-        const { REDIS_MAGIC_STRING, REDIS_VERSION } = redis_main_const;
-        const parsedKeyValueSet = new Map();
-        const parsedExpiryTimeSet = new Map();
-        let cursor = REDIS_MAGIC_STRING + REDIS_VERSION;
-        let length;
-        let rdbEOF = false;
-    
-        while (cursor < data.length) {
-            if (data[cursor] === OPCODES.SELECTDB) {
-                break;
-            }
-            cursor++;
+        const readByte = () => buffer.readUInt8(offset++);
+        const readInt = () => {
+            const result = buffer.readUInt32BE(offset);
+            offset += 4;
+            return result;
+        };
+
+        // Verify the RDB file header
+        const header = buffer.slice(0, 5).toString();
+        if (header !== 'REDIS') {
+            throw new Error('Invalid RDB file');
         }
-    
-        while (cursor < data.length && !rdbEOF) {
-            let expTime = undefined;
-            let dbNumber = undefined;
-    
-            if (data[cursor] === OPCODES.SELECTDB) {
-                cursor++;
+        offset += 5;
 
-                [length, cursor] = handleLengthEncoding(data, cursor);
-                dbNumber = data.subarray(cursor + 1, cursor + 1 + length);
+        const version = parseInt(buffer.slice(5, 9).toString(), 10);
+        console.log(`RDB Version: ${version}`);
+        offset += 4;
 
-                cursor++;
-    
-                [length, cursor] = handleLengthEncoding(data, cursor);
-                [length, cursor] = handleLengthEncoding(data, cursor);
-    
+        const entries = [];
+
+        while (offset < buffer.length) {
+            const dataType = readByte();
+            if (dataType === 0xFF) {
+                break; // End of file
+            } else if (dataType === SELECTDB_OPCODE) {
+                currentDb = readInt();
+                continue;
             }
-    
-            switch (data[cursor]) {
-                case OPCODES.EXPIRETIME:
-                    cursor++;
-    
-                    expTime = data.subarray(cursor, cursor + 4).readUInt32LE() * 1000;
-                    expTime = new Date(Number(data.subarray(cursor, cursor + 4).readUInt32LE() * 1000));
-    
-                    cursor += 4;
-                    break;
-    
-                case OPCODES.EXPIRETIMEMS:
-                    cursor++;
-    
-                    expTime = data.subarray(cursor, cursor + 8).readDoubleLE();
-                    expTime = new Date(Number(data.subarray(cursor, cursor + 8).readBigUInt64LE()));
-    
-                    cursor += 8;
-                    break;
-    
-                case OPCODES.EOF:
-                    rdbEOF = true;
-                    continue;
-    
-                default:
-                    break;
-    
+
+            const keyLength = readInt();
+            const key = buffer.slice(offset, offset + keyLength).toString();
+            offset += keyLength;
+
+            if (dataType === STRING_TYPE) {
+                const valueLength = readInt();
+                const value = buffer.slice(offset, offset + valueLength).toString();
+                offset += valueLength;
+                entries.push({ db: currentDb, type: 'string', key, value });
+            } else if (dataType === LIST_TYPE) {
+                const listLength = readInt();
+                const list = [];
+                for (let i = 0; i < listLength; i++) {
+                    const itemLength = readInt();
+                    const item = buffer.slice(offset, offset + itemLength).toString();
+                    offset += itemLength;
+                    list.push(item);
+                }
+                entries.push({ db: currentDb, type: 'list', key, value: list });
+            } else if (dataType === HASH_TYPE) {
+                const hashLength = readInt();
+                const hash = {};
+                for (let i = 0; i < hashLength; i++) {
+                    const fieldLength = readInt();
+                    const field = buffer.slice(offset, offset + fieldLength).toString();
+                    offset += fieldLength;
+                    const valueLength = readInt();
+                    const value = buffer.slice(offset, offset + valueLength).toString();
+                    offset += valueLength;
+                    hash[field] = value;
+                }
+                entries.push({ db: currentDb, type: 'hash', key, value: hash });
             }
-    
-            const valueType = data[cursor];
-            cursor++;
-    
-            const redisKeyLength = data[cursor];
-            const redisKey = data.subarray(cursor + 1, cursor + 1 + redisKeyLength).toString();
-    
-            cursor = cursor + 1 + redisKeyLength;
-            const redisValueLength = data[cursor];
-            const redisValue = data.subarray(cursor + 1, cursor + 1 + redisValueLength).toString();
-            cursor += redisValueLength;
-    
-            parsedKeyValueSet.set(redisKey, redisValue);
-            expTime && parsedExpiryTimeSet.set(redisKey, expTime);
-            cursor++; 
         }
-    
-        return [parsedKeyValueSet, parsedExpiryTimeSet];
-    
+
+        return entries;
     }
 }
