@@ -352,7 +352,7 @@ class Handler {
         if(storage[args[0]] == undefined || storage[args[1]] == undefined){
             return encoder.encodeNull()
         }
-        else if(!(storage[args[0]] instanceof Set && storage[args[1]] instanceof Se)){
+        else if(!(storage[args[0]] instanceof Set && storage[args[1]] instanceof Set)){
             return encoder.encodeError("TYPE ERROR", "this value is not a set")
         }
         else{
@@ -364,7 +364,7 @@ class Handler {
         if(storage[args[0]] == undefined || storage[args[1]] == undefined){
             return encoder.encodeNull()
         }
-        else if(!(storage[args[0]] instanceof Set && storage[args[1]] instanceof Se)){
+        else if(!(storage[args[0]] instanceof Set && storage[args[1]] instanceof Set)){
             return encoder.encodeError("TYPE ERROR", "this value is not a set")
         }
         else{
@@ -376,7 +376,7 @@ class Handler {
         if(storage[args[0]] == undefined || storage[args[1]] == undefined){
             return encoder.encodeNull()
         }
-        else if(!(storage[args[0]] instanceof Set && storage[args[1]] instanceof Se)){
+        else if(!(storage[args[0]] instanceof Set && storage[args[1]] instanceof Set)){
             return encoder.encodeError("TYPE ERROR", "this value is not a set")
         }
         else{
@@ -385,18 +385,46 @@ class Handler {
     }
 
     handleZadd(args, storage){
+        if(storage[args[0]] == undefined){
+            storage[args[0]] = new SortedSet()
+        }
+        else if(!(storage[args[0]] instanceof SortedSet)){
+            return encoder.encodeError("TYPE ERROR", "this value is not a sorted set")
+        }
+        
+        for(let i = 1; i < args.length; i++){
+            storage[args[0]].add(args[i])
+        }
 
+        return encoder.encodeString("OK")
     }
 
     handleZrange(args, storage){
-
+        if(storage[args[0]] == undefined){
+            return encoder.encodeNull()
+        }
+        else if(!(storage[args[0]] instanceof Set && storage[args[1]] instanceof Set)){
+            return encoder.encodeError("TYPE ERROR", "this value is not a set")
+        }
+        else{
+            return encoder.encodeArray(storage[args[0]].rangeElements(parseInt(args[1]), parseInt(args[2])))
+        }
     }
 
     handleZscore(args, storage){
-
+        if(storage[args[0]] == undefined){
+            return encoder.encodeNull()
+        }
+        else if(!(storage[args[0]] instanceof Set && storage[args[1]] instanceof Set)){
+            return encoder.encodeError("TYPE ERROR", "this value is not a set")
+        }
+        else{
+            return encoder.encodeBulkString(storage[args[0]].getScore(args[1]))
+        }
     }
 }
 
 module.exports = {
-    handler: new Handler()
+    handler: new Handler(),
+    SortedSet
 }
