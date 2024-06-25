@@ -2,8 +2,11 @@ const SELECTDB_OPCODE = 0xFE;
 const STRING_TYPE = 0;
 const LIST_TYPE = 1;
 const HASH_TYPE = 2;
+const SET_TYPE = 3;
+const SORTED_SET_TYPE = 4;
 const fs = require('fs');
 const { Buffer } = require('buffer');
+const { SortedSet } = require('./handler')
 
 class RDBWriter {
     constructor(filePath) {
@@ -24,7 +27,7 @@ class RDBWriter {
     
             if(typeof value == "object"){
                 for (const [key, value] of Object.entries(value)) {
-                    if(typeof value == "string"){
+                    if(typeof value.value == "string"){
                         selected_db.strings.set(key, value)
                     }
                     else if(value instanceof Map){
@@ -66,9 +69,8 @@ class RDBWriter {
             bufferArray.push(intBuffer);
         };
 
-        // Write the RDB file header
         writeString('REDIS');
-        writeString('0009'); // Assuming version 9
+        writeString('0009');
 
         databases.forEach((db, index) => {
             if (db.strings.size > 0 || db.lists.size > 0 || db.hashes.size > 0) {
@@ -175,7 +177,6 @@ class RDBReader {
             return result;
         };
 
-        // Verify the RDB file header
         const header = buffer.slice(0, 5).toString();
         if (header !== 'REDIS') {
             throw new Error('Invalid RDB file');
