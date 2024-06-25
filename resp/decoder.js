@@ -25,7 +25,9 @@ class Decoder {
       SUNION: this.parseSunion,
       ZADD: this.parseZadd,
       ZRANGE: this.parseZrange,
-      ZSCORE: this.parseZscore
+      ZSCORE: this.parseZscore,
+      SAVE: this.parseSave,
+      LOAD: this.parseLoad
     };
   }
 
@@ -257,6 +259,14 @@ class Decoder {
     }
 
     return { command: 'ZSCORE', args: args };
+  }
+
+  parseSave(args){
+    return { command: 'SAVE', args: args };
+  }
+
+  parseLoad(args){
+    return { command: 'LOAD', args: args };
   }
 
   parseString(str) {

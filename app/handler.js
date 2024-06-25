@@ -5,7 +5,12 @@ const reader = require('./aof').reader;
 const sync = require('./sync').sync
 const resync = require('./sync').resync
 
-const globalCommands = ["SELECT"]
+const {RDBReader, RDBWriter} = require('./rdb')
+
+const rdbWriter = new RDBWriter('./db.rdb')
+const rdbReader = new RDBReader('./db.rdb')
+
+const globalCommands = ["SELECT", "LOAD", "SAVE"]
 const replCommands = ["REPLCONF", "PSYNC"]
 const getCommands = ["PING", "ECHO", "GET", "LRANGE", "HGET", "HGETALL"]
 
@@ -63,7 +68,9 @@ class Handler {
             SUNION: this.handleSunion,
             ZADD: this.handleZadd,
             ZRANGE: this.handleZrange,
-            ZSCORE: this.handleZscore
+            ZSCORE: this.handleZscore,
+            SAVE: this.handleSave,
+            LOAD: this.handleLoad
         };
     }
 
@@ -421,6 +428,23 @@ class Handler {
         else{
             return encoder.encodeBulkString(storage[args[0]].getScore(args[1]))
         }
+    }
+
+    handleSave(args, storage){
+        rdbWriter.write(rdbWriter.dbToDump(storage))
+        return encoder.encodeString("OK")
+    }
+
+    handleLoad(args, storage){
+        const newDb = rdbReader.dumpToDb(rdbReader.read())
+        newDb.isMaster = storage.isMaster
+        newDb.replicas = storage.replicas
+        newDb.replicaIncrId = storage.replicaIncrId
+        newDb.master_replid = storage.replicaIncrId
+        newDb.master_repl_offset = storage.master_repl_offset
+        newDb.isResyncMode = storage.isResyncMode
+        newDb.isSyncMode = storage.isSyncMode
+        return encoder.encodeString("OK")
     }
 }
 

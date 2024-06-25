@@ -16,7 +16,7 @@ class RDBWriter {
     dbToDump(db){
         let returnArray = []
     
-        for (const [key, value] of Object.entries(object1)) {
+        for (const [key, value] of Object.entries(db)) {
             let selected_db = {
                 strings: new Map(),
                 lists: new Map(),
@@ -260,4 +260,9 @@ class RDBReader {
 
         return entries;
     }
+}
+
+module.exports = {
+    RDBReader,
+    RDBWriter
 }
