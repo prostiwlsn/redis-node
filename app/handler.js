@@ -12,7 +12,7 @@ const rdbReader = new RDBReader('./db.rdb')
 
 const globalCommands = ["SELECT", "LOAD", "SAVE"]
 const replCommands = ["REPLCONF", "PSYNC"]
-const getCommands = ["PING", "ECHO", "GET", "LRANGE", "HGET", "HGETALL"]
+const getCommands = ["PING", "ECHO", "GET", "LRANGE", "HGET", "HGETALL", "SAVE"]
 
 class SortedSet{
     constructor(){
