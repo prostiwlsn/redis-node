@@ -10,6 +10,42 @@ class RDBWriter {
         this.filePath = filePath;
     }
 
+    dbToDump(db){
+        let returnArray = []
+    
+        for (const [key, value] of Object.entries(object1)) {
+            let selected_db = {
+                strings: new Map(),
+                lists: new Map(),
+                hashes: new Map(),
+                sets: new Map(),
+                sortedSets: new Map()
+            }
+    
+            if(typeof value == "object"){
+                for (const [key, value] of Object.entries(value)) {
+                    if(typeof value == "string"){
+                        selected_db.strings.set(key, value)
+                    }
+                    else if(value instanceof Map){
+                        selected_db.hashes.set(key, Object.fromEntries(value))
+                    }
+                    else if (value instanceof Set){
+                        selected_db.sets.set(key, value)
+                    }
+                    else if (value instanceof SortedSet){
+                        selected_db.sortedSets.set(key, value)
+                    }
+                    else if(Array.isArray(value)){
+                        selected_db.lists.set(key, value)
+                    }
+                }
+            }
+    
+            returnArray.push(selected_db)
+        }
+    }
+
     write(databases) {
         const bufferArray = [];
 
@@ -71,6 +107,30 @@ class RDBWriter {
                         writeString(value);
                     });
                 });
+
+                db.sets.forEach((list, key) => {
+                    writeByte(SET_TYPE);
+                    writeInt(Buffer.byteLength(key));
+                    writeString(key);
+                    writeInt(list.length);
+                    list.forEach(item => {
+                        writeInt(Buffer.byteLength(item));
+                        writeString(item);
+                    });
+                });
+
+                db.sortedSets.forEach((set, key) => {
+                    writeByte(SORTED_SET_TYPE);
+                    writeInt(Buffer.byteLength(key));
+                    writeString(key);
+                    writeInt(set.values.length);
+                    set.values.forEach(item => {
+                        writeInt(Buffer.byteLength(item.key));
+                        writeString(item.key);
+                        writeInt(Buffer.byteLength(item.value));
+                        writeString(item.value);
+                    });
+                });
             }
         });
 
@@ -84,6 +144,22 @@ class RDBWriter {
 class RDBReader {
     constructor(filePath) {
         this.filePath = filePath;
+    }
+    
+    dumpToDb(dump){
+        let db = {}
+        for(let kvObject of dump){
+            if(db["DB_" + kvObject.db] == undefined){
+                db["DB_" + kvObject.db] = {}
+            }
+    
+            if(kvObject.type == "hash"){
+                db["DB_" + kvObject.db][kvObject.key] = new Map(Object.entries(kvObject.value))
+            }
+            else{
+                db["DB_" + kvObject.db][kvObject.key] = kvObject.value
+            }
+        }
     }
 
     read() {
@@ -153,6 +229,31 @@ class RDBReader {
                     hash[field] = value;
                 }
                 entries.push({ db: currentDb, type: 'hash', key, value: hash });
+            }
+            else if (dataType === SET_TYPE){
+                const listLength = readInt();
+                const list = new Set();
+                for (let i = 0; i < listLength; i++) {
+                    const itemLength = readInt();
+                    const item = buffer.slice(offset, offset + itemLength).toString();
+                    offset += itemLength;
+                    list.add(item);
+                }
+                entries.push({ db: currentDb, type: 'set', key, value: list });
+            }
+            else if (dataType === SORTED_SET_TYPE) {
+                const hashLength = readInt();
+                const hash = new SortedSet();
+                for (let i = 0; i < hashLength; i++) {
+                    const fieldLength = readInt();
+                    const field = buffer.slice(offset, offset + fieldLength).toString();
+                    offset += fieldLength;
+                    const valueLength = readInt();
+                    const value = buffer.slice(offset, offset + valueLength).toString();
+                    offset += valueLength;
+                    hash.addElement(field, value)
+                }
+                entries.push({ db: currentDb, type: 'sortedSet', key, value: hash });
             }
         }
 
