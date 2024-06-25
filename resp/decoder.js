@@ -17,7 +17,15 @@ class Decoder {
       HGET: this.parseHget,
       HGETALL: this.parseHgetall,
       REPLCONF: this.parseReplconf,
-      PSYNC: this.parsePsync
+      PSYNC: this.parsePsync,
+      SADD: this.parseSadd,
+      SMEMBERS: this.parseSmembers,
+      SINTER: this.parseSinter,
+      SDIFF: this.parseSdiff,
+      SUNION: this.parseSunion,
+      ZADD: this.parseZadd,
+      ZRANGE: this.parseZrange,
+      ZSCORE: this.parseZscore
     };
   }
 
@@ -186,6 +194,71 @@ class Decoder {
     return { command: 'PSYNC', args: args };
   }
 
+  parseSadd(args){
+    if (args.length < 2) {
+      throw new Error('SADD command requires at least two arguments');
+    }
+
+    return { command: 'SADD', args: args };
+  }
+
+  parseSmembers(args){
+    if (args.length != 1) {
+      throw new Error('SMEMBERS command requires exactly one argument');
+    }
+
+    return { command: 'SMEMBERS', args: args };
+  }
+
+  parseSinter(args){
+    if (args.length != 2) {
+      throw new Error('SINTER command requires exactly two arguments');
+    }
+
+    return { command: 'SINTER', args: args };
+  }
+
+  parseSdiff(args){
+    if (args.length != 2) {
+      throw new Error('SDIFF command requires exactly two arguments');
+    }
+
+    return { command: 'SDIFF', args: args };
+  }
+
+  parseSunion(args){
+    if (args.length != 2) {
+      throw new Error('SUNION command requires exactly two arguments');
+    }
+
+    return { command: 'SUNION', args: args };
+  }
+
+  parseZadd(args){
+    if (args.length < 3 && args.length % 2 != 1) {
+      throw new Error('ZADD command requires at least three arguments');
+    }
+
+    return { command: 'ZADD', args: args };
+  }
+
+  parseZrange(args){
+    if (args.length != 3) {
+      throw new Error('ZRANGE command requires exactly three arguments');
+    }
+    else if(isNaN(parseInt(args[1]) || parseInt(args[2])) )
+
+    return { command: 'ZRANGE', args: args };
+  }
+
+  parseZscore(args){
+    if (args.length != 2) {
+      throw new Error('ZSCORE command requires exactly two arguments');
+    }
+
+    return { command: 'ZSCORE', args: args };
+  }
+
   parseString(str) {
     if (str.startsWith('+')) {
       return str.slice(1, -2);
@@ -202,7 +275,7 @@ class Decoder {
     throw new Error('Invalid Bulk String format');
   }
 
-  parseInt(str) {
+  parseInteger(str) {
     if (str.startsWith(':')) {
       return parseInt(str.slice(1, -2), 10);
     }
