@@ -10,7 +10,7 @@ const {RDBReader, RDBWriter} = require('./rdb')
 const rdbWriter = new RDBWriter('./db.rdb')
 const rdbReader = new RDBReader('./db.rdb')
 
-const globalCommands = ["SELECT", "LOAD", "SAVE"]
+const globalCommands = ["SELECT", "LOAD"]
 const replCommands = ["REPLCONF", "PSYNC"]
 const getCommands = ["PING", "ECHO", "GET", "LRANGE", "HGET", "HGETALL", "SAVE"]
 
