@@ -1,4 +1,5 @@
 const handler = require("./handler").handler;
+const { SortedSet } = require("./handler")
 const encoder = require("../resp/encoder").encoder
 const reader = require("./aof").reader
 const net = require("net");

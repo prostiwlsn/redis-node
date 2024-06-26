@@ -32,6 +32,10 @@ class Decoder {
   }
 
   parseResponse(input){
+    if(input == '$_\r\n' || input == '*-1\r\n'){
+      return "null"
+    }
+
     const firstByte = input[0]
     switch(firstByte){
       case '*':
@@ -237,8 +241,13 @@ class Decoder {
   }
 
   parseZadd(args){
-    if (args.length < 3 && args.length % 2 != 1) {
+    if (args.length < 3 || args.length % 2 != 1) {
+      console.log(1, args)
       throw new Error('ZADD command requires at least three arguments');
+    }
+    else if(args.filter((arg, index) => isNaN(parseInt(arg)) && index % 2 == 0 && index != 0).length != 0){
+      console.log(2, args, args.filter((arg, index) => isNaN(parseInt(arg)) && index % 2 == 1 && index != 0))
+      throw new Error('wrong arguments');
     }
 
     return { command: 'ZADD', args: args };
@@ -248,7 +257,9 @@ class Decoder {
     if (args.length != 3) {
       throw new Error('ZRANGE command requires exactly three arguments');
     }
-    else if(isNaN(parseInt(args[1]) || parseInt(args[2])) )
+    else if(isNaN(parseInt(args[1]) || isNaN(parseInt(args[2]))) ){
+      throw new Error('wrong arguments');
+    }
 
     return { command: 'ZRANGE', args: args };
   }

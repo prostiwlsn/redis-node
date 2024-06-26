@@ -26,7 +26,7 @@ process.stdin.on('data', data => {
 
 client.on('close', () => {
     console.log('Connection closed');
-    client.end()
+    process.exit()
 });
 
 client.on("end", () => {
@@ -35,5 +35,5 @@ client.on("end", () => {
 
 client.on("error", () => {
     console.log("error occurred")
-    client.end()
+    process.exit()
 })

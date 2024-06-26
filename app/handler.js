@@ -12,7 +12,7 @@ const rdbReader = new RDBReader('./db.rdb')
 
 const globalCommands = ["SELECT", "LOAD", "SAVE"]
 const replCommands = ["REPLCONF", "PSYNC"]
-const getCommands = ["PING", "ECHO", "GET", "LRANGE", "HGET", "HGETALL"]
+const getCommands = ["PING", "ECHO", "GET", "LRANGE", "HGET", "HGETALL", "SMEMBERS", "SINTER", "SDIFF", "SUNION", "ZSCORE", "ZRANGE"]
 
 class SortedSet{
     constructor(){
@@ -25,7 +25,7 @@ class SortedSet{
         }
         this.values.push({key, value})
 
-        this.values.sort((a, b) => a.value - b)
+        this.values.sort((a, b) => a.value - b.value)
     }
 
     rangeElements(start, end){
@@ -39,7 +39,8 @@ class SortedSet{
     }
 
     getScore(key){
-        return this.values.filter(value => value.key == key)[0]
+        console.log(this.values, this.values.filter(value => value.key == key))
+        return this.values.filter(value => value.key == key)[0].value
     }
 }
 
@@ -335,12 +336,15 @@ class Handler {
         if(storage[args[0]] == undefined){
             storage[args[0]] = new Set()
         }
+        else if(!(storage[args[0]] instanceof Set)){
+            return encoder.encodeError("TYPE ERROR", "this value is not a set")
+        }
 
         for(let i = 1; i < args.length; i++){
             storage[args[0]].add(args[i])
         }
 
-        return encodeString("OK")
+        return encoder.encodeString("OK")
     }
 
     handleSmembers(args, storage){
@@ -363,7 +367,8 @@ class Handler {
             return encoder.encodeError("TYPE ERROR", "this value is not a set")
         }
         else{
-            return encoder.encodeArray(Array.from(storage[args[0]].intersection(storage[args[1]])))
+            console.log(storage[args[0]], storage[args[1]])
+            return encoder.encodeArray(Array.from(new Set([...storage[args[0]]].filter(x => storage[args[1]].has(x)))))
         }
     }
 
@@ -375,7 +380,7 @@ class Handler {
             return encoder.encodeError("TYPE ERROR", "this value is not a set")
         }
         else{
-            return encoder.encodeArray(Array.from(storage[args[0]].difference(storage[args[1]])))
+            return encoder.encodeArray(Array.from(new Set([...storage[args[0]]].filter(x => !storage[args[1]].has(x)))))
         }
     }
 
@@ -387,7 +392,7 @@ class Handler {
             return encoder.encodeError("TYPE ERROR", "this value is not a set")
         }
         else{
-            return encoder.encodeArray(Array.from(storage[args[0]].union(storage[args[1]])))
+            return encoder.encodeArray(Array.from(new Set([...storage[args[0]], ...storage[args[1]]])))
         }
     }
 
@@ -399,8 +404,8 @@ class Handler {
             return encoder.encodeError("TYPE ERROR", "this value is not a sorted set")
         }
         
-        for(let i = 1; i < args.length; i++){
-            storage[args[0]].add(args[i])
+        for(let i = 1; i < args.length; i+=2){
+            storage[args[0]].addElement(args[i], args[i+1])
         }
 
         return encoder.encodeString("OK")
@@ -410,11 +415,23 @@ class Handler {
         if(storage[args[0]] == undefined){
             return encoder.encodeNull()
         }
-        else if(!(storage[args[0]] instanceof Set && storage[args[1]] instanceof Set)){
+        else if(!(storage[args[0]] instanceof SortedSet)){
             return encoder.encodeError("TYPE ERROR", "this value is not a set")
         }
         else{
-            return encoder.encodeArray(storage[args[0]].rangeElements(parseInt(args[1]), parseInt(args[2])))
+            const leftRange = parseInt(args[1])
+            let rightRange = parseInt(args[2])
+
+            if(isNaN(leftRange) || isNaN(rightRange)){
+                return encoder.encodeError("ARGUMENT ERROR", "argument type does not match")
+            }
+            else if (leftRange >= storage[args[0]].values.length){
+                return encoder.encodeArray([])
+            }
+
+            rightRange = rightRange >= storage[args[0]].values.length || rightRange < 0 ? storage[args[0]].values.length : rightRange+1
+            
+            return encoder.encodeArray(storage[args[0]].rangeElements(leftRange, rightRange))
         }
     }
 
@@ -422,7 +439,7 @@ class Handler {
         if(storage[args[0]] == undefined){
             return encoder.encodeNull()
         }
-        else if(!(storage[args[0]] instanceof Set && storage[args[1]] instanceof Set)){
+        else if(!(storage[args[0]] instanceof SortedSet)){
             return encoder.encodeError("TYPE ERROR", "this value is not a set")
         }
         else{
