@@ -10,9 +10,9 @@ const {RDBReader, RDBWriter} = require('./rdb')
 const rdbWriter = new RDBWriter('./db.rdb')
 const rdbReader = new RDBReader('./db.rdb')
 
-const globalCommands = ["SELECT", "LOAD"]
+const globalCommands = ["SELECT", "LOAD", "SAVE"]
 const replCommands = ["REPLCONF", "PSYNC"]
-const getCommands = ["PING", "ECHO", "GET", "LRANGE", "HGET", "HGETALL", "SAVE"]
+const getCommands = ["PING", "ECHO", "GET", "LRANGE", "HGET", "HGETALL"]
 
 class SortedSet{
     constructor(){
@@ -89,7 +89,7 @@ class Handler {
                 sync(storage, command)
 
                 try{
-                    if(isWritable && !getCommands.includes(parsedCommand.command) && storage.isMaster && parsedCommand != undefined && parsedCommand.command != undefined){
+                    if(isWritable && !getCommands.includes(parsedCommand.command) && storage.isMaster && parsedCommand != undefined && parsedCommand.command != undefined && parsedCommand.command != "SAVE"){
                         writer.write(command)
                     }
                 }
@@ -437,6 +437,7 @@ class Handler {
 
     handleLoad(args, storage){
         const newDb = rdbReader.dumpToDb(rdbReader.read())
+
         newDb.isMaster = storage.isMaster
         newDb.replicas = storage.replicas
         newDb.replicaIncrId = storage.replicaIncrId
@@ -444,6 +445,7 @@ class Handler {
         newDb.master_repl_offset = storage.master_repl_offset
         newDb.isResyncMode = storage.isResyncMode
         newDb.isSyncMode = storage.isSyncMode
+
         return encoder.encodeString("OK")
     }
 }
