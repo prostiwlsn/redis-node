@@ -25,7 +25,7 @@ class SortedSet{
         }
         this.values.push({key, value})
 
-        this.values.sort((a, b) => a.value - b.value)
+        this.values.sort((a, b) => parseInt(a.value) - parseInt(b.value))
     }
 
     rangeElements(start, end){
@@ -448,20 +448,39 @@ class Handler {
     }
 
     handleSave(args, storage){
+        console.log(rdbWriter.dbToDump(storage), storage)
         rdbWriter.write(rdbWriter.dbToDump(storage))
         return encoder.encodeString("OK")
     }
 
     handleLoad(args, storage){
+        const xdd = rdbReader.read()
         const newDb = rdbReader.dumpToDb(rdbReader.read())
 
-        newDb.isMaster = storage.isMaster
-        newDb.replicas = storage.replicas
-        newDb.replicaIncrId = storage.replicaIncrId
-        newDb.master_replid = storage.replicaIncrId
-        newDb.master_repl_offset = storage.master_repl_offset
-        newDb.isResyncMode = storage.isResyncMode
-        newDb.isSyncMode = storage.isSyncMode
+        //console.log(newDb, "new db")
+        //console.log(storage, "storage")
+
+        //newDb.isMaster = storage.isMaster
+        //newDb.replicas = storage.replicas
+        //newDb.replicaIncrId = storage.replicaIncrId
+        //newDb.master_replid = storage.replicaIncrId
+        //newDb.master_repl_offset = storage.master_repl_offset
+        //newDb.isResyncMode = storage.isResyncMode
+        //newDb.isSyncMode = storage.isSyncMode
+
+        //storage = newDb
+
+        for(let key of Object.keys(storage)){
+            if(key[0] + key[1] + key[2] == "DB_"){
+                delete storage[key]
+            }
+        }
+
+        for(let key of Object.keys(newDb)){
+            storage[key] = newDb[key]
+        }
+
+        //console.log(storage, "storage 2")
 
         return encoder.encodeString("OK")
     }

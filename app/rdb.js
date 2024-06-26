@@ -15,7 +15,8 @@ class RDBWriter {
 
     dbToDump(db){
         let returnArray = []
-    
+        let dbNumber = 0
+
         for (const [key, value] of Object.entries(db)) {
             let selected_db = {
                 strings: new Map(),
@@ -24,32 +25,44 @@ class RDBWriter {
                 sets: new Map(),
                 sortedSets: new Map()
             }
-    
-            if(typeof value == "object"){
-                for (const [key, value] of Object.entries(value)) {
-                    if(typeof value.value == "string"){
-                        selected_db.strings.set(key, value)
+
+            console.log(value)
+            if(typeof value == "object" && key[0] + key[1] + key[2] == "DB_"){
+                for (const [keyy, val] of Object.entries(value)) {
+                    if(typeof val.value == "string"){
+                        selected_db.strings.set(keyy, val.value)
                     }
-                    else if(value instanceof Map){
-                        selected_db.hashes.set(key, Object.fromEntries(value))
+                    else if(val instanceof Map){
+                        selected_db.hashes.set(keyy, Object.fromEntries(val))
                     }
-                    else if (value instanceof Set){
-                        selected_db.sets.set(key, value)
+                    else if (val instanceof Set){
+                        selected_db.sets.set(keyy, val)
                     }
-                    else if (value instanceof SortedSet){
-                        selected_db.sortedSets.set(key, value)
+                    else if (val instanceof SortedSet){
+                        selected_db.sortedSets.set(keyy, val)
                     }
-                    else if(Array.isArray(value)){
-                        selected_db.lists.set(key, value)
+                    else if(Array.isArray(val)){
+                        selected_db.lists.set(keyy, val)
                     }
                 }
+                dbNumber++
+                returnArray.push(selected_db)
             }
     
-            returnArray.push(selected_db)
         }
+
+        return returnArray
     }
 
     write(databases) {
+        fs.unlink(this.filePath, (err) => {
+            if (err) {
+              console.error(err);
+              return;
+            }
+            console.log('Файл успешно удален');
+        });
+
         const bufferArray = [];
 
         const writeString = (str) => {
@@ -114,7 +127,8 @@ class RDBWriter {
                     writeByte(SET_TYPE);
                     writeInt(Buffer.byteLength(key));
                     writeString(key);
-                    writeInt(list.length);
+                    writeInt(list.size);
+                    console.log(list.size, list)
                     list.forEach(item => {
                         writeInt(Buffer.byteLength(item));
                         writeString(item);
@@ -158,14 +172,20 @@ class RDBReader {
             if(kvObject.type == "hash"){
                 db["DB_" + kvObject.db][kvObject.key] = new Map(Object.entries(kvObject.value))
             }
+            else if (kvObject.type == "string"){
+                db["DB_" + kvObject.db][kvObject.key] = {value: kvObject.value, ttl: -1}
+            }
             else{
                 db["DB_" + kvObject.db][kvObject.key] = kvObject.value
             }
         }
+
+        return db
     }
 
     read() {
         const data = fs.readFileSync(this.filePath);
+        console.log(new TextDecoder().decode(data))
         const buffer = Buffer.from(data);
         let offset = 0;
         let currentDb = 0;
@@ -177,6 +197,7 @@ class RDBReader {
             return result;
         };
 
+        // Verify the RDB file header
         const header = buffer.slice(0, 5).toString();
         if (header !== 'REDIS') {
             throw new Error('Invalid RDB file');
@@ -202,6 +223,7 @@ class RDBReader {
             const key = buffer.slice(offset, offset + keyLength).toString();
             offset += keyLength;
 
+            console.log(key, offset)
             if (dataType === STRING_TYPE) {
                 const valueLength = readInt();
                 const value = buffer.slice(offset, offset + valueLength).toString();
