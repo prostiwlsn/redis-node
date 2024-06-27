@@ -6,7 +6,7 @@ const SET_TYPE = 3;
 const SORTED_SET_TYPE = 4;
 const fs = require('fs');
 const { Buffer } = require('buffer');
-const { SortedSet } = require('./handler')
+const {SortedSet} = require('./sortedSet')
 
 class RDBWriter {
     constructor(filePath) {
@@ -60,7 +60,7 @@ class RDBWriter {
               console.error(err);
               return;
             }
-            console.log('Файл успешно удален');
+            console.log('File deleted');
         });
 
         const bufferArray = [];
@@ -197,7 +197,6 @@ class RDBReader {
             return result;
         };
 
-        // Verify the RDB file header
         const header = buffer.slice(0, 5).toString();
         if (header !== 'REDIS') {
             throw new Error('Invalid RDB file');

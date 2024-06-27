@@ -6,6 +6,7 @@ const sync = require('./sync').sync
 const resync = require('./sync').resync
 
 const {RDBReader, RDBWriter} = require('./rdb')
+const {SortedSet} = require('./sortedSet')
 
 const rdbWriter = new RDBWriter('./db.rdb')
 const rdbReader = new RDBReader('./db.rdb')
@@ -13,36 +14,6 @@ const rdbReader = new RDBReader('./db.rdb')
 const globalCommands = ["SELECT", "LOAD", "SAVE"]
 const replCommands = ["REPLCONF", "PSYNC"]
 const getCommands = ["PING", "ECHO", "GET", "LRANGE", "HGET", "HGETALL", "SMEMBERS", "SINTER", "SDIFF", "SUNION", "ZSCORE", "ZRANGE"]
-
-class SortedSet{
-    constructor(){
-        this.values = []
-    }
-
-    addElement(key, value){
-        if(this.values.filter(value => value.key == key).length != 0){
-            this.values = this.values.filter(value => value.key != key)
-        }
-        this.values.push({key, value})
-
-        this.values.sort((a, b) => parseInt(a.value) - parseInt(b.value))
-    }
-
-    rangeElements(start, end){
-        let returnValues = []
-
-        for(let i = start; i < end; i ++){
-            returnValues.push(this.values[i].key)
-            returnValues.push(this.values[i].value)
-        }
-        return returnValues
-    }
-
-    getScore(key){
-        console.log(this.values, this.values.filter(value => value.key == key))
-        return this.values.filter(value => value.key == key)[0].value
-    }
-}
 
 class Handler {
     constructor() {
