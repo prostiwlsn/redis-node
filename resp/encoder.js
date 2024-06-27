@@ -8,16 +8,16 @@ class Encoder{
         let insideQuotes = false;
 
         for (let i = 0; i < command.length; i++) {
-        if (command[i] === ' ' && !insideQuotes) {
-            if (part !== '') {
-            parts.push(part);
-            part = '';
+            if (command[i] === ' ' && !insideQuotes) {
+                if (part !== '') {
+                parts.push(part);
+                part = '';
+                }
+            } else if (command[i] === '"') {
+                insideQuotes = !insideQuotes;
+            } else {
+                part += command[i];
             }
-        } else if (command[i] === '"') {
-            insideQuotes = !insideQuotes;
-        } else {
-            part += command[i];
-        }
         }
 
         if (part !== '') {
@@ -26,6 +26,10 @@ class Encoder{
 
         parts[parts.length - 1] = parts[parts.length - 1].replace(/\r\n/g, "")
         //console.log(parts)
+
+        if(parts[parts.length - 1].length == 0){
+            parts.pop()
+        }
 
         let finalString = ""
         
