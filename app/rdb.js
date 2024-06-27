@@ -185,7 +185,6 @@ class RDBReader {
 
     read() {
         const data = fs.readFileSync(this.filePath);
-        console.log(new TextDecoder().decode(data))
         const buffer = Buffer.from(data);
         let offset = 0;
         let currentDb = 0;
